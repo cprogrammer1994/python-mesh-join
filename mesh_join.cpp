@@ -2,13 +2,14 @@
 #include <Python.h>
 
 PyObject * meth_join(PyObject * self, PyObject * args, PyObject * kwargs) {
-    static char * keywords[] = {"mesh", "index", "stride", NULL};
+    static char * keywords[] = {"mesh", "index", "stride", "separator", NULL};
 
     PyObject * meshes;
     PyObject * indexes;
     int stride;
+    int separator = false;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOi", keywords, &meshes, &indexes, &stride)) {
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "OOi|p", keywords, &meshes, &indexes, &stride, &separator)) {
         return 0;
     }
 
@@ -50,6 +51,10 @@ PyObject * meth_join(PyObject * self, PyObject * args, PyObject * kwargs) {
         total_index_size += (int)index_views[i].len;
     }
 
+    if (separator) {
+        total_index_size += sizeof(int) * (num_meshes - 1);
+    }
+
     PyObject * final_mesh = PyBytes_FromStringAndSize(NULL, total_mesh_size);
     PyObject * final_index = PyBytes_FromStringAndSize(NULL, total_index_size);
 
@@ -66,6 +71,10 @@ PyObject * meth_join(PyObject * self, PyObject * args, PyObject * kwargs) {
         int * index_array = (int *)index_views[i].buf;
         for (int j = 0; j < count; ++j) {
             *index_ptr++ = index_array[j] != -1 ? base_index + index_array[j] : -1;
+        }
+
+        if (separator && i != num_meshes - 1) {
+            *index_ptr++ = -1;
         }
 
         base_index += (int)(mesh_views[i].len / stride);

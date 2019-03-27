@@ -53,7 +53,7 @@ def test_join_with_restart_index():
     index1 = np.array([0, 1, 2, -1, 2, 3])
     index2 = np.array([0, 1])
 
-    vdata, idata = mesh_join.join([vertices1, vertices2], [index1, index2], stride=12)
+    vdata, idata = mesh_join.join([vertices1, vertices2], [index1, index2], stride=12, separator=True)
 
     vertices = np.frombuffer(vdata, 'f4').reshape(-1, 3)
     index = np.frombuffer(idata, 'i4')
@@ -67,7 +67,7 @@ def test_join_with_restart_index():
         [0.0, 0.0, 6.0],
     ])
 
-    np.testing.assert_equal(index, [0, 1, 2, -1, 2, 3, 4, 5])
+    np.testing.assert_equal(index, [0, 1, 2, -1, 2, 3, -1, 4, 5])
 
 
 if __name__ == '__main__':
